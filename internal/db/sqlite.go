@@ -10,7 +10,7 @@ import (
 
 // SQLiteCreateDB create/magrate DB
 func SQLiteCreateDB(ApkStruct models.Apk) error {
-	db, err := gorm.Open(sqlite.Open("./apk.db"))
+	db, err := gorm.Open(sqlite.Open("./data/apk.db"))
 	if err != nil {
 		panic("Failed to open the SQLite database.")
 	}
@@ -24,7 +24,7 @@ func SQLiteCreateDB(ApkStruct models.Apk) error {
 }
 
 func SQLiteAddApk(apk *models.Apk) error {
-	db, err := gorm.Open(sqlite.Open("./apk.db"))
+	db, err := gorm.Open(sqlite.Open("./data/astore.db"))
 	if err != nil {
 		panic("Failed to open the SQLite database.")
 	}
@@ -35,7 +35,7 @@ func SQLiteAddApk(apk *models.Apk) error {
 }
 
 func SQLiteDelApk(apk models.Apk) error {
-	db, err := gorm.Open(sqlite.Open("./apk.db"))
+	db, err := gorm.Open(sqlite.Open("./data/astore.db"))
 	if err != nil {
 		panic("Failed to open the SQLite database.")
 	}
@@ -46,7 +46,7 @@ func SQLiteDelApk(apk models.Apk) error {
 }
 
 func SQLiteSaveApk(apk models.Apk) error {
-	db, err := gorm.Open(sqlite.Open("./apk.db"))
+	db, err := gorm.Open(sqlite.Open("./data/astore.db"))
 	if err != nil {
 		panic("Failed to open the SQLite database.")
 	}
@@ -57,7 +57,7 @@ func SQLiteSaveApk(apk models.Apk) error {
 }
 
 func SQLiteGetApk(id string) (models.Apk, error) {
-	db, err := gorm.Open(sqlite.Open("./apk.db"))
+	db, err := gorm.Open(sqlite.Open("./data/astore.db"))
 	if err != nil {
 		panic("Failed to open the SQLite database.")
 	}
@@ -69,7 +69,7 @@ func SQLiteGetApk(id string) (models.Apk, error) {
 }
 
 func SQLiteFindApk(sha256 string) (models.Apk, error) {
-	db, err := gorm.Open(sqlite.Open("./apk.db"))
+	db, err := gorm.Open(sqlite.Open("./data/astore.db"))
 	if err != nil {
 		panic("Failed to open the SQLite database.")
 	}
@@ -81,7 +81,7 @@ func SQLiteFindApk(sha256 string) (models.Apk, error) {
 }
 
 func SQLiteGetApks() ([]models.Apk, error) {
-	db, err := gorm.Open(sqlite.Open("./apk.db"))
+	db, err := gorm.Open(sqlite.Open("./data/astore.db"))
 	if err != nil {
 		panic("Failed to open the SQLite database.")
 	}

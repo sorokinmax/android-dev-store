@@ -26,7 +26,7 @@ func IndexHandler(ctx *gin.Context) {
 		apks[id].URL = fmt.Sprintf("%s/apk/%s/%s", globals.Config.Url, apk.SHA256, apk.FileName)
 	}
 
-	e := casbin.NewEnforcer("./model.conf", "./policy.csv")
+	e := casbin.NewEnforcer("./data/model.conf", "./data/policy.csv")
 	//log.Println(ctx.Value("user"))
 
 	// Admin rights
@@ -100,7 +100,7 @@ func QRHandler(ctx *gin.Context) {
 	dc.SetRGB(1, 1, 1)
 	dc.Clear()
 	dc.SetRGB(0, 0, 0)
-	if err := dc.LoadFontFace("arial.ttf", 16); err != nil {
+	if err := dc.LoadFontFace("./data/arial.ttf", 16); err != nil {
 		panic(err)
 	}
 

@@ -10,7 +10,7 @@ import (
 
 // SQLiteCreateDB create/magrate DB
 func SQLiteCreateDB(ApkStruct models.Apk) error {
-	db, err := gorm.Open(sqlite.Open("./data/apk.db"))
+	db, err := gorm.Open(sqlite.Open("./data/astore.db"))
 	if err != nil {
 		panic("Failed to open the SQLite database.")
 	}

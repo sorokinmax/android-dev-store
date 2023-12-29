@@ -1,5 +1,6 @@
 package middleware
 
+/*
 import (
 	"context"
 
@@ -48,3 +49,4 @@ func MidAuth(a *websspi.Authenticator) gin.HandlerFunc {
 		c.Next()
 	}
 }
+*/

@@ -4,7 +4,6 @@ import (
 	"android-store/internal/api"
 	"android-store/internal/db"
 	"android-store/internal/globals"
-	"android-store/internal/middleware"
 	models "android-store/internal/models/apk"
 	"fmt"
 	"log"
@@ -20,7 +19,6 @@ import (
 	"github.com/foolin/goview/supports/ginview"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
-	"github.com/sorokinmax/websspi"
 )
 
 func init() {
@@ -52,8 +50,8 @@ func main() {
 	router.Use(sloggin.New(slog.Default()))
 
 	router.HTMLRender = ginview.Default()
-	config := websspi.NewConfig()
-	auth, _ := websspi.New(config)
+	//config := websspi.NewConfig()
+	//auth, _ := websspi.New(config)
 
 	//router.Use(MidAuth(auth))
 	//router.Use(AddUserToCtx())
@@ -61,7 +59,7 @@ func main() {
 	router.Use(static.Serve("/apps", static.LocalFile("./apps", false)))
 	router.Use(static.Serve("/icons", static.LocalFile("./icons", false)))
 	router.GET("/", api.IndexHandler)
-	router.GET("/admin", middleware.MidAuth(auth), middleware.AddUserToCtx(), api.IndexHandler)
+	//router.GET("/admin", middleware.MidAuth(auth), middleware.AddUserToCtx(), api.IndexHandler)
 	router.GET("/app/:id", api.VersionHandler)
 	router.GET("/qr/:id", api.QRHandler)
 	router.POST("/remove", api.RemoveHandler)

@@ -2,11 +2,12 @@
 ## Build stage
 ##
 FROM golang:1.21.5-alpine3.19 AS build
-RUN apk update && apk upgrade
+RUN apk update && apk upgrade&& \
+     apk add --no-cache git gcc g++ musl-dev
 COPY . /src
 WORKDIR /src
 
-RUN GOOS=linux go build -o /astore .
+RUN GOOS=linux CGO_ENABLED=1 go build -o /astore ./cmd/astore/
 
 ##
 ## Final image stage
@@ -21,4 +22,4 @@ COPY --from=build /src/cmd/astore/data /astore/data
 RUN mkdir -p /astore/apps && mkdir -p /astore/tmp
 
 EXPOSE 80
-ENTRYPOINT ["/astore"]
+ENTRYPOINT ["/astore/astore"]

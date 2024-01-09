@@ -107,7 +107,7 @@
                             <button class="button" onClick="parent.location='apps/{{.SHA256}}/{{.FileName}}'">Install APK</button>
                         </td>
                         <td class="notmain">   
-                            <button class="button" onClick="parent.location='{{.service_url}}/qr/{{.apk.ID}}'">Get QR</button>
+                            <button class="button" onClick="parent.location='qr/{{.ID}}'">Get QR</button>
                         </td>
                     <tr>
                         {{ if (eq $admin 1) }}

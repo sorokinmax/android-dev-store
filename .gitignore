@@ -19,5 +19,5 @@
 
 # Go workspace file
 go.work
-cmd/astore/data/apk.db
 cmd/astore/apps/*
+cmd/astore/data/astore.db

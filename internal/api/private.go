@@ -75,6 +75,7 @@ func VersionHandler(ctx *gin.Context) {
 
 	ctx.HTML(http.StatusOK, "version/index", gin.H{
 		"title":       globals.ServiceFriendlyName,
+		"version":     globals.Version,
 		"apk":         apk,
 		"service_url": globals.Config.Url,
 	},

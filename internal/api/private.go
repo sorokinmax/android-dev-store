@@ -135,7 +135,9 @@ func PostApkHandler(ctx *gin.Context) {
 
 	app := apk.ApkProcessor("./apps", file.Filename)
 
-	msg := fmt.Sprintf("New build %s %s is ready", app.AppLabel, app.VersionName)
-	telegram.TgSendMessage(globals.Config.BotToken, msg, globals.Config.ChatID)
+	if globals.Config.BotToken != "" && globals.Config.ChatID != 0 {
+		msg := fmt.Sprintf("New build %s %s is ready", app.AppLabel, app.VersionName)
+		telegram.TgSendMessage(globals.Config.BotToken, msg, globals.Config.ChatID)
+	}
 	ctx.JSON(http.StatusOK, gin.H{"responce": "File processed"})
 }

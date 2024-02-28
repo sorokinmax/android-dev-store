@@ -7,7 +7,7 @@ RUN apk update && apk upgrade&& \
 COPY . /src
 WORKDIR /src
 
-RUN GOOS=linux CGO_ENABLED=1 go build -o /astore ./cmd/astore/
+RUN GOOS=linux CGO_ENABLED=1 CGO_CFLAGS="-D_LARGEFILE64_SOURCE" go build -o /astore ./cmd/astore/
 
 ##
 ## Final image stage

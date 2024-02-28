@@ -5,6 +5,7 @@ import (
 	"android-store/internal/db"
 	"android-store/internal/globals"
 	models "android-store/internal/models/apk"
+	telegram "android-store/pkg/telegram"
 	"fmt"
 	"image/png"
 	"log"
@@ -22,8 +23,8 @@ import (
 func IndexHandler(ctx *gin.Context) {
 	var apks []models.Apk
 	apks, _ = db.SQLiteGetApks()
-	for id, apk := range apks {
-		apks[id].URL = fmt.Sprintf("%s/apk/%s/%s", globals.Config.Url, apk.SHA256, apk.FileName)
+	for id, app := range apks {
+		apks[id].URL = apk.GetAPKURL(app)
 	}
 
 	e := casbin.NewEnforcer("./data/model.conf", "./data/policy.csv")
@@ -83,14 +84,14 @@ func VersionHandler(ctx *gin.Context) {
 }
 
 func QRHandler(ctx *gin.Context) {
-	var apk models.Apk
+	var app models.Apk
 	var id = ctx.Param("id")
 
-	apk, _ = db.SQLiteGetApk(id)
-	apk.URL = fmt.Sprintf("%s/apps/%s/%s", globals.Config.Url, apk.SHA256, apk.FileName)
+	app, _ = db.SQLiteGetApk(id)
+	app.URL = apk.GetAPKURL(app)
 
-	data := apk.URL
-	description := fmt.Sprintf("%s-%s (%s)", apk.AppLabel, apk.VersionName, apk.Package)
+	data := app.URL
+	description := fmt.Sprintf("%s-%s (%s)", app.AppLabel, app.VersionName, app.Package)
 
 	qrCode, _ := qr.Encode(data, qr.L, qr.Auto)
 	qrCode, _ = barcode.Scale(qrCode, 600, 600)
@@ -132,7 +133,9 @@ func PostApkHandler(ctx *gin.Context) {
 		log.Fatal(err)
 	}
 
-	apk.ApkProcessor("./apps", file.Filename)
+	app := apk.ApkProcessor("./apps", file.Filename)
 
+	msg := fmt.Sprintf("New build %s %s is ready", app.AppLabel, app.VersionName)
+	telegram.TgSendMessage(globals.Config.BotToken, msg, globals.Config.ChatID)
 	ctx.JSON(http.StatusOK, gin.H{"responce": "File processed"})
 }

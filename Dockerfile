@@ -1,7 +1,7 @@
 ##
 ## Build stage
 ##
-FROM golang:1.21.5-alpine3.19 AS build
+FROM golang:1.21.7-alpine3.19 AS build
 RUN apk update && apk upgrade&& \
      apk add --no-cache git gcc g++ musl-dev
 COPY . /src

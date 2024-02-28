@@ -2,6 +2,7 @@ package apk
 
 import (
 	"android-store/internal/db"
+	"android-store/internal/globals"
 	models "android-store/internal/models/apk"
 	"bytes"
 	"crypto/sha256"
@@ -16,7 +17,7 @@ import (
 	"github.com/avast/apkparser"
 )
 
-func ApkProcessor(dirPath string, fileName string) {
+func ApkProcessor(dirPath string, fileName string) *models.Apk {
 	var apks []models.Apk
 	var apk models.Apk
 
@@ -25,7 +26,7 @@ func ApkProcessor(dirPath string, fileName string) {
 	manifest, err := apkParse(filePath)
 	if err != nil {
 		//fmt.Fprintf(os.Stderr, "Failed to open the APK: %s", zipErr.Error())
-		return
+		return nil
 	}
 
 	apk.Package = manifest.Package
@@ -40,6 +41,9 @@ func ApkProcessor(dirPath string, fileName string) {
 	apks, _ = db.SQLiteGetApks()
 	if !containsApks(apks, apk) {
 		db.SQLiteAddApk(&apk)
+	} else {
+		log.Printf("%s already exist", apk.VersionName)
+		return nil
 	}
 
 	/*if err == nil {
@@ -65,6 +69,7 @@ func ApkProcessor(dirPath string, fileName string) {
 		panic(err)
 	}
 	moveFile(filePath, fmt.Sprintf("./apps/%s/%s", apk.SHA256, fileName))
+	return &apk
 }
 
 func apkParse(name string) (*models.Manifest, error) {
@@ -128,4 +133,9 @@ func moveFile(source string, destination string) {
 	if err != nil {
 		fmt.Println(err)
 	}
+}
+
+func GetAPKURL(apk models.Apk) (URL string) {
+	URL = fmt.Sprintf("%s/apk/%s/%s", globals.Config.Url, apk.SHA256, apk.FileName)
+	return URL
 }

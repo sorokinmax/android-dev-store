@@ -6,7 +6,7 @@ import (
 	tb "gopkg.in/telebot.v3"
 )
 
-func TgSendMessage(botToken string, msg string, chatID int) (responce *tb.Message) {
+func TgSendMessage(botToken string, msg string, chatID int64) (responce *tb.Message) {
 	log.Printf("Sending to chat: %d", chatID)
 
 	tbot, err := tb.NewBot(tb.Settings{

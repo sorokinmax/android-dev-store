@@ -6,7 +6,6 @@ import (
 	"android-store/internal/globals"
 	models "android-store/internal/models/apk"
 	"fmt"
-	"log"
 	"log/slog"
 	"os"
 	"runtime"
@@ -33,7 +32,7 @@ func init() {
 	err := env.Parse(&globals.Config)
 	if err != nil {
 		color.Set(color.FgHiRed)
-		slog.Error("cannot unmarshal environment variables")
+		slog.Error(fmt.Sprintf("Cannot unmarshal environment variables: %v", err.Error()))
 		color.Unset()
 	}
 
@@ -65,6 +64,6 @@ func main() {
 	router.POST("/remove", api.RemoveHandler)
 	router.POST("/apk", api.PostApkHandler)
 
-	log.Println(fmt.Sprintf("Web is available at localhost:%d", globals.Config.HttpPort))
+	slog.Info(fmt.Sprintf("Web is available at localhost:%d", globals.Config.HttpPort))
 	router.Run(fmt.Sprintf(":%d", globals.Config.HttpPort))
 }

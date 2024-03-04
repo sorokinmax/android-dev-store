@@ -5,7 +5,7 @@ go 1.21.7
 require (
 	github.com/avast/apkparser v0.0.0-20231031113741-3ff9e55acf2f
 	github.com/boombuler/barcode v1.0.1
-	github.com/caarlos0/env/v9 v9.0.0
+	github.com/caarlos0/env/v10 v10.0.0
 	github.com/casbin/casbin v1.9.1
 	github.com/fatih/color v1.16.0
 	github.com/fogleman/gg v1.3.0

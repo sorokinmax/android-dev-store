@@ -32,9 +32,9 @@ github.com/bytedance/sonic/loader
 github.com/bytedance/sonic/option
 github.com/bytedance/sonic/unquote
 github.com/bytedance/sonic/utf8
-# github.com/caarlos0/env/v9 v9.0.0
+# github.com/caarlos0/env/v10 v10.0.0
 ## explicit; go 1.17
-github.com/caarlos0/env/v9
+github.com/caarlos0/env/v10
 # github.com/casbin/casbin v1.9.1
 ## explicit
 github.com/casbin/casbin

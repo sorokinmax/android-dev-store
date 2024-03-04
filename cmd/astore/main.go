@@ -13,7 +13,7 @@ import (
 
 	sloggin "android-store/pkg/gin-slog"
 
-	"github.com/caarlos0/env/v9"
+	"github.com/caarlos0/env/v10"
 	"github.com/fatih/color"
 	"github.com/foolin/goview/supports/ginview"
 	"github.com/gin-gonic/contrib/static"

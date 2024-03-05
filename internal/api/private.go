@@ -128,12 +128,12 @@ func PostApkHandler(ctx *gin.Context) {
 
 	//log.Println(file.Filename)
 
-	err = ctx.SaveUploadedFile(file, "./apps/"+file.Filename)
+	err = ctx.SaveUploadedFile(file, "./data/apps/"+file.Filename)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	app := apk.ApkProcessor("./apps", file.Filename)
+	app := apk.ApkProcessor("./data/apps", file.Filename)
 
 	if globals.Config.BotToken != "" && globals.Config.ChatID != 0 {
 		msg := fmt.Sprintf("New build %s %s is ready", app.AppLabel, app.VersionName)

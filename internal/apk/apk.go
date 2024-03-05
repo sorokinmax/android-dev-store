@@ -136,6 +136,6 @@ func moveFile(source string, destination string) {
 }
 
 func GetAPKURL(apk models.Apk) (URL string) {
-	URL = fmt.Sprintf("%s/apk/%s/%s", globals.Config.Url, apk.SHA256, apk.FileName)
+	URL = fmt.Sprintf("%s/apps/%s/%s", globals.Config.Url, apk.SHA256, apk.FileName)
 	return URL
 }

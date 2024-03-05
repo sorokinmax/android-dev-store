@@ -19,7 +19,7 @@ WORKDIR /astore
 COPY --from=build /astore /astore/astore
 COPY --from=build /src/cmd/astore/views /astore/views
 COPY --from=build /src/cmd/astore/data /astore/data
-RUN mkdir -p /astore/apps && mkdir -p /astore/tmp
+RUN mkdir -p /astore/data/apps && mkdir -p /astore/tmp
 
 EXPOSE 80
 ENTRYPOINT ["/astore/astore"]

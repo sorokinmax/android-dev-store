@@ -64,11 +64,11 @@ func ApkProcessor(dirPath string, fileName string) *models.Apk {
 			deleteFile(filePath)
 		}
 	}*/
-	err = os.MkdirAll(fmt.Sprintf("./apps/%s", apk.SHA256), 0777)
+	err = os.MkdirAll(fmt.Sprintf("./data/apps/%s", apk.SHA256), 0777)
 	if err != nil {
 		panic(err)
 	}
-	moveFile(filePath, fmt.Sprintf("./apps/%s/%s", apk.SHA256, fileName))
+	moveFile(filePath, fmt.Sprintf("./data/apps/%s/%s", apk.SHA256, fileName))
 	return &apk
 }
 

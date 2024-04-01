@@ -12,6 +12,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/avast/apkparser"
@@ -68,7 +69,10 @@ func ApkProcessor(dirPath string, fileName string) *models.Apk {
 	if err != nil {
 		panic(err)
 	}
-	moveFile(filePath, fmt.Sprintf("./data/apps/%s/%s", apk.SHA256, fileName))
+	err = moveFile(filePath, fmt.Sprintf("./data/apps/%s/%s", apk.SHA256, fileName))
+	if err != nil {
+		log.Println(err.Error())
+	}
 	return &apk
 }
 
@@ -128,14 +132,45 @@ func containsApks(ipaArr []models.Apk, apk models.Apk) bool {
 	return false
 }
 
-func moveFile(source string, destination string) {
-	err := os.Rename(source, destination)
-	if err != nil {
-		fmt.Println(err)
-	}
-}
-
 func GetAPKURL(apk models.Apk) (URL string) {
 	URL = fmt.Sprintf("%s/apps/%s/%s", globals.Config.Url, apk.SHA256, apk.FileName)
 	return URL
+}
+
+func moveFile(source, destination string) error {
+	err := os.Rename(source, destination)
+	if err != nil && strings.Contains(err.Error(), "invalid cross-device link") {
+		return moveCrossDevice(source, destination)
+	}
+	return err
+}
+
+func moveCrossDevice(source, destination string) error {
+	src, err := os.Open(source)
+	if err != nil {
+		return err
+	}
+	dst, err := os.Create(destination)
+	if err != nil {
+		src.Close()
+		return err
+	}
+	_, err = io.Copy(dst, src)
+	src.Close()
+	dst.Close()
+	if err != nil {
+		return err
+	}
+	fi, err := os.Stat(source)
+	if err != nil {
+		os.Remove(destination)
+		return err
+	}
+	err = os.Chmod(destination, fi.Mode())
+	if err != nil {
+		os.Remove(destination)
+		return err
+	}
+	os.Remove(source)
+	return nil
 }

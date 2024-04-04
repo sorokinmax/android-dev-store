@@ -3,7 +3,7 @@ package globals
 // SERVICE DESCRIPTION
 const ServiceFriendlyName = "Android store"
 const ServiceName = "android-store"
-const Version = "1.1.7"
+const Version = "1.1.8"
 
 // ENVIRONMENT VARIABLES CONFIGURATION STRUCTURE
 type ConfigStruct struct {

@@ -1,5 +1,22 @@
 package middleware
 
+import (
+	"strings"
+
+	"github.com/gin-gonic/gin"
+)
+
+func StaticApkMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Apply the Cache-Control header to the static files
+		if strings.HasPrefix(c.Request.URL.Path, "/apps/") {
+			c.Header("Content-Type", "application/vnd.android.package-archive")
+		}
+		// Continue to the next middleware or handler
+		c.Next()
+	}
+}
+
 /*
 import (
 	"context"

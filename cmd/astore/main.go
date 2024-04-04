@@ -4,6 +4,7 @@ import (
 	"android-store/internal/api"
 	"android-store/internal/db"
 	"android-store/internal/globals"
+	"android-store/internal/middleware"
 	models "android-store/internal/models/apk"
 	"fmt"
 	"log/slog"
@@ -56,6 +57,7 @@ func main() {
 	//router.Use(AddUserToCtx())
 	router.StaticFile("favicon.ico", "./views/favicon.ico")
 	router.Use(static.Serve("/apps", static.LocalFile("./data/apps", false)))
+	router.Use(middleware.StaticApkMiddleware())
 	//router.Use(static.Serve("/icons", static.LocalFile("./icons", false)))
 	router.GET("/", api.IndexHandler)
 	//router.GET("/admin", middleware.MidAuth(auth), middleware.AddUserToCtx(), api.IndexHandler)

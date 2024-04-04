@@ -48,6 +48,7 @@ func main() {
 	router := gin.New()
 	router.Use(gin.Recovery())
 	router.Use(sloggin.New(slog.Default()))
+	router.Use(middleware.StaticApkMiddleware())
 
 	router.HTMLRender = ginview.Default()
 	//config := websspi.NewConfig()
@@ -57,7 +58,6 @@ func main() {
 	//router.Use(AddUserToCtx())
 	router.StaticFile("favicon.ico", "./views/favicon.ico")
 	router.Use(static.Serve("/apps", static.LocalFile("./data/apps", false)))
-	router.Use(middleware.StaticApkMiddleware())
 	//router.Use(static.Serve("/icons", static.LocalFile("./icons", false)))
 	router.GET("/", api.IndexHandler)
 	//router.GET("/admin", middleware.MidAuth(auth), middleware.AddUserToCtx(), api.IndexHandler)

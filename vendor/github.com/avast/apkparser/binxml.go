@@ -16,6 +16,7 @@ import (
 type binxmlParseInfo struct {
 	strings     stringTable
 	resourceIds []uint32
+	openTags    []xml.Name
 
 	encoder ManifestEncoder
 	res     *ResourceTable
@@ -111,7 +112,9 @@ func ParseXml(r io.Reader, enc ManifestEncoder, resources *ResourceTable) error 
 		} else if err != nil {
 			return fmt.Errorf("Chunk: 0x%08x: %s", id, err.Error())
 		} else if lm.N != 0 {
-			return fmt.Errorf("Chunk: 0x%08x: was not fully read", id)
+			// da62a1edc4d9826c8bf2ed8d5be857614f7908163269d80f9d4ad9ee4d12405e
+			io.CopyN(ioutil.Discard, lm, lm.N)
+			//return fmt.Errorf("Chunk: 0x%08x: was not fully read (%d remaining)", id, lm.N)
 		}
 	}
 
@@ -272,7 +275,10 @@ func (x *binxmlParseInfo) parseTagStart(r *io.LimitedReader) error {
 		case AttrTypeString:
 			resultAttr.Value, err = x.strings.get(attr.RawValueIdx)
 			if err != nil {
-				return fmt.Errorf("error decoding attrStringIdx: %s", err.Error())
+				// da62a1edc4d9826c8bf2ed8d5be857614f7908163269d80f9d4ad9ee4d12405e
+				resultAttr.Value = fmt.Sprintf("#%d", attr.RawValueIdx)
+				err = nil
+				//return fmt.Errorf("error decoding attrStringIdx: %s", err.Error())
 			}
 		case AttrTypeIntBool:
 			resultAttr.Value = strconv.FormatBool(attr.Res.Data != 0)
@@ -306,6 +312,8 @@ func (x *binxmlParseInfo) parseTagStart(r *io.LimitedReader) error {
 		tok.Attr = append(tok.Attr, resultAttr)
 	}
 
+	x.openTags = append(x.openTags, tok.Name)
+
 	return x.encoder.EncodeToken(tok)
 }
 
@@ -326,7 +334,16 @@ func (x *binxmlParseInfo) parseTagEnd(r *io.LimitedReader) error {
 
 	name, err := x.strings.get(nameIdx)
 	if err != nil {
-		return fmt.Errorf("error decoding name: %s", err.Error())
+		// 4D8029A256A7FC3571BC497F9B6D1D734A5F2D4D95E032A47AE86F2C6812DCEB
+		if len(x.openTags) != 0 {
+			name = x.openTags[len(x.openTags)-1].Local
+		} else {
+			return fmt.Errorf("error decoding name: %s", err.Error())
+		}
+	}
+
+	if len(x.openTags) != 0 {
+		x.openTags = x.openTags[:len(x.openTags)-1]
 	}
 
 	return x.encoder.EncodeToken(xml.EndElement{Name: xml.Name{Local: name, Space: namespace}})

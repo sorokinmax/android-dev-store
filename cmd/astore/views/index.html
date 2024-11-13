@@ -98,7 +98,7 @@
             <td>{{.ID}}</td>
             <td>{{.Package}}</td>
             <td>{{.AppLabel}}</td>
-            <td>{{.FileName}}</td>
+            <td>{{.APKFileName}}</td>
             <td><a href=/app/{{.ID}}>{{.VersionName}}</a></td>
             <td>{{.VersionCode}}</td>
             <td>{{.UploadTime}}</td>
@@ -106,10 +106,13 @@
                 <table style="width:100%">
                     <tr>
                         <td class="notmain">
-                            <button class="button" onClick="parent.location='apps/{{.SHA256}}/{{.FileName}}'">Install APK</button>
+                            <button class="button" onClick="location.href='{{.ApkUrl}}'">Install APK</button>
                         </td>
                         <td class="notmain">   
                             <button class="button" onClick="parent.location='qr/{{.ID}}'">Get QR</button>
+                        </td>
+                        <td class="notmain">
+                            <button class="button" onClick="location.href='{{.AabUrl}}'">Get AAB</button>
                         </td>
                     <tr>
                         {{ if (eq $admin 1) }}

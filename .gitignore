@@ -22,3 +22,4 @@ go.work
 cmd/astore/apps/*
 cmd/astore/data/astore.db
 *.apk
+*.aab

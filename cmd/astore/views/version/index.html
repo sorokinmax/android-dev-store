@@ -81,7 +81,7 @@
             <td>{{.apk.ID}}</td>
             <td>{{.apk.Package}}</td>
             <td>{{.apk.AppLabel}}</td>
-            <td>{{.apk.FileName}}</td>
+            <td>{{.apk.APKFileName}}</td>
             <td>{{.apk.VersionName}}</td>
             <td>{{.apk.VersionCode}}</td>
             <td>{{.apk.UploadTime}}</td>
@@ -89,10 +89,13 @@
                 <table style="width:100%">
                     <tr>
                         <td class="notmain">
-                            <button class="button" onClick="location.href='{{.apk.URL}}'">Install APK</button>
+                            <button class="button" onClick="location.href='{{.apk.ApkUrl}}'">Install APK</button>
                         </td>
                         <td class="notmain">   
                             <button class="button" onClick="parent.location='{{.service_url}}/qr/{{.apk.ID}}'">Get QR</button>
+                        </td>
+                        <td class="notmain">
+                            <button class="button" onClick="location.href='{{.apk.AabUrl}}'">Get AAB</button>
                         </td>
                     </tr>
                 </table>

@@ -46,6 +46,7 @@ func main() {
 	db.SQLiteCreateDB(models.Apk{})
 
 	router := gin.New()
+	router.MaxMultipartMemory = 256 << 20 // 256 MiB
 	router.Use(gin.Recovery())
 	router.Use(sloggin.New(slog.Default()))
 	router.Use(middleware.StaticApkMiddleware())

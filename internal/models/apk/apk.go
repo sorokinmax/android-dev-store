@@ -15,6 +15,7 @@ type Apk struct {
 	SHA256     string
 
 	Package     string
+	VersionCode string
 	VersionName string
 	AppLabel    string
 	AppIcon     string

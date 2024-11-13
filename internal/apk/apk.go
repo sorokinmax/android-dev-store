@@ -34,6 +34,7 @@ func ApkProcessor(dirPath string, fileName string) *models.Apk {
 	apk.AppName = manifest.Application.Name
 	apk.AppLabel = manifest.Application.Label
 	apk.AppIcon = manifest.Application.Icon
+	apk.VersionCode = manifest.VersionCode
 	apk.VersionName = manifest.VersionName
 	apk.FileName = fileName
 	apk.SHA256 = getSHA256(filePath)

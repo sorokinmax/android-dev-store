@@ -88,7 +88,8 @@
             <th>Package</th>
             <th>App label</th>
             <th>File name</th>
-            <th>Version</th>
+            <th>Version Name</th>
+            <th>Version Code</th>
             <th>Upload Time</th>
             <th>Actions</th>
           </tr>
@@ -99,6 +100,7 @@
             <td>{{.AppLabel}}</td>
             <td>{{.FileName}}</td>
             <td><a href=/app/{{.ID}}>{{.VersionName}}</a></td>
+            <td>{{.VersionCode}}</td>
             <td>{{.UploadTime}}</td>
             <td>
                 <table style="width:100%">

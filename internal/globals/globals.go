@@ -3,7 +3,7 @@ package globals
 // SERVICE DESCRIPTION
 const ServiceFriendlyName = "Android store"
 const ServiceName = "android-store"
-const Version = "1.3.0"
+const Version = "1.2.0"
 
 // GLOBAL CONSTS
 const TMPDIR = "./tmp/"

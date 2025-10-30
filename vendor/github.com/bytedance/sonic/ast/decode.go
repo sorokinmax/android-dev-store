@@ -17,17 +17,17 @@
 package ast
 
 import (
-	"encoding/base64"
-	"runtime"
-	"strconv"
-	"unsafe"
+    `encoding/base64`
+    `runtime`
+    `strconv`
+    `unsafe`
 
-	"github.com/bytedance/sonic/internal/native/types"
-	"github.com/bytedance/sonic/internal/rt"
-	"github.com/bytedance/sonic/internal/utils"
-	"github.com/bytedance/sonic/unquote"
+    `github.com/bytedance/sonic/internal/native/types`
+    `github.com/bytedance/sonic/internal/rt`
 )
 
+// Hack: this is used for both checking space and cause firendly compile errors in 32-bit arch.
+const _Sonic_Not_Support_32Bit_Arch__Checking_32Bit_Arch_Here = (1 << ' ') | (1 << '\t') | (1 << '\r') | (1 << '\n')
 
 var bytesNull   = []byte("null")
 
@@ -39,13 +39,17 @@ const (
     bytesArray  = "[]"
 )
 
+func isSpace(c byte) bool {
+    return (int(1<<c) & _Sonic_Not_Support_32Bit_Arch__Checking_32Bit_Arch_Here) != 0
+}
+
 //go:nocheckptr
 func skipBlank(src string, pos int) int {
     se := uintptr(rt.IndexChar(src, len(src)))
     sp := uintptr(rt.IndexChar(src, pos))
 
     for sp < se {
-        if !utils.IsSpace(*(*byte)(unsafe.Pointer(sp))) {
+        if !isSpace(*(*byte)(unsafe.Pointer(sp))) {
             break
         }
         sp += 1
@@ -102,13 +106,13 @@ func decodeString(src string, pos int) (ret int, v string) {
         return ret, v
     }
 
-    result, err := unquote.String(src[pos:ret])
-    if err != 0 {
+    vv, ok := unquoteBytes(rt.Str2Mem(src[pos:ret]))
+    if !ok {
         return -int(types.ERR_INVALID_CHAR), ""
     }
 
     runtime.KeepAlive(src)
-    return ret, result
+    return ret, rt.Mem2Str(vv)
 }
 
 func decodeBinary(src string, pos int) (ret int, v []byte) {
@@ -286,7 +290,67 @@ func decodeValue(src string, pos int, skipnum bool) (ret int, v types.JsonState)
 
 //go:nocheckptr
 func skipNumber(src string, pos int) (ret int) {
-    return utils.SkipNumber(src, pos)
+    sp := uintptr(rt.IndexChar(src, pos))
+    se := uintptr(rt.IndexChar(src, len(src)))
+    if uintptr(sp) >= se {
+        return -int(types.ERR_EOF)
+    }
+
+    if c := *(*byte)(unsafe.Pointer(sp)); c == '-' {
+        sp += 1
+    }
+    ss := sp
+
+    var pointer bool
+    var exponent bool
+    var lastIsDigit bool
+    var nextNeedDigit = true
+
+    for ; sp < se; sp += uintptr(1) {
+        c := *(*byte)(unsafe.Pointer(sp))
+        if isDigit(c) {
+            lastIsDigit = true
+            nextNeedDigit = false
+            continue
+        } else if nextNeedDigit {
+            return -int(types.ERR_INVALID_CHAR)
+        } else if c == '.' {
+            if !lastIsDigit || pointer || exponent || sp == ss {
+                return -int(types.ERR_INVALID_CHAR)
+            }
+            pointer = true
+            lastIsDigit = false
+            nextNeedDigit = true
+            continue
+        } else if c == 'e' || c == 'E' {
+            if !lastIsDigit || exponent {
+                return -int(types.ERR_INVALID_CHAR)
+            }
+            if sp == se-1 {
+                return -int(types.ERR_EOF)
+            }
+            exponent = true
+            lastIsDigit = false
+            nextNeedDigit = false
+            continue
+        } else if c == '-' || c == '+' {
+            if prev := *(*byte)(unsafe.Pointer(sp - 1)); prev != 'e' && prev != 'E' {
+                return -int(types.ERR_INVALID_CHAR)
+            }
+            lastIsDigit = false
+            nextNeedDigit = true
+            continue
+        } else {
+            break
+        }
+    }
+
+    if nextNeedDigit {
+        return -int(types.ERR_EOF)
+    }
+
+    runtime.KeepAlive(src)
+    return int(uintptr(sp) - uintptr((*rt.GoString)(unsafe.Pointer(&src)).Ptr))
 }
 
 //go:nocheckptr
@@ -544,7 +608,7 @@ func _DecodeString(src string, pos int, needEsc bool, validStr bool) (v string, 
             return str, p.p, true
         }
         /* unquote the string */
-        out, err := unquote.String(str)
+        out, err := unquote(str)
         /* check for errors */
         if err != 0 {
             return "", -int(err), true

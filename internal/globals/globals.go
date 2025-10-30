@@ -8,12 +8,6 @@ const Version = "1.2.0"
 // GLOBAL CONSTS
 const TMPDIR = "./tmp/"
 
-// GLOBAL VARIABLES
-var (
-	Config         ConfigStruct
-	VersionPostfix string
-)
-
 // ENVIRONMENT VARIABLES CONFIGURATION STRUCTURE
 type ConfigStruct struct {
 	HttpPort uint   `env:"AS_HTTP_PORT" envDefault:"80"`
@@ -21,3 +15,8 @@ type ConfigStruct struct {
 	BotToken string `env:"AS_TELEGRAM_BOT_TOKEN" envDefault:""`
 	ChatID   int64  `env:"AS_TELEGRAM_CHAT_ID" envDefault:"0"`
 }
+
+// GLOBAL VARIABLES
+var (
+	Config ConfigStruct
+)

@@ -17,15 +17,13 @@
 package vars
 
 import (
-	"encoding/json"
-	"fmt"
-	"os"
-	"reflect"
-	"strconv"
-	"strings"
-	"unsafe"
+    `encoding/json`
+    `fmt`
+    `reflect`
+    `strconv`
+    `unsafe`
 
-	"github.com/bytedance/sonic/internal/rt"
+    `github.com/bytedance/sonic/internal/rt`
 )
 
 var ERR_too_deep = &json.UnsupportedValueError {
@@ -49,10 +47,6 @@ func Error_number(number json.Number) error {
     }
 }
 
-func Error_unsuppoted(typ *rt.GoType) error {
-	return &json.UnsupportedTypeError{Type: typ.Pack() }
-}
-
 func Error_marshaler(ret []byte, pos int) error {
     return fmt.Errorf("invalid Marshaler output json syntax at %d: %q", pos, ret)
 }
@@ -61,31 +55,11 @@ const (
     PanicNilPointerOfNonEmptyString int = 1 + iota
 )
 
-func GoPanic(code int, val unsafe.Pointer, buf string) {
-    sb := strings.Builder{}
+func GoPanic(code int, val unsafe.Pointer) {
     switch(code){
     case PanicNilPointerOfNonEmptyString:
-        sb.WriteString(fmt.Sprintf("val: %#v has nil pointer while its length is not zero!\nThis is a nil pointer exception (NPE) problem. There might be a data race issue. It is recommended to execute the tests related to the code with the `-race` compile flag to detect the problem.\n", (*rt.GoString)(val)))
+        panic(fmt.Sprintf("val: %#v has nil pointer while its length is not zero!\nThis is a nil pointer exception (NPE) problem. There might be a data race issue. It is recommended to execute the tests related to the code with the `-race` compile flag to detect the problem.", (*rt.GoString)(val)))
     default:
-        sb.WriteString("encoder error: ")
-        sb.WriteString(strconv.Itoa(code))
-        sb.WriteString("\n")
-    }
-    sb.WriteString("JSON: ")
-    if len(buf) > maxJSONLength {
-        sb.WriteString(buf[len(buf)-maxJSONLength:])
-    } else {
-        sb.WriteString(buf)
-    }
-    panic(sb.String())
-}
-
-var maxJSONLength = 1024
-
-func init() {
-    if v := os.Getenv("SONIC_PANIC_MAX_JSON_LENGTH"); v != "" {
-        if i, err := strconv.Atoi(v); err == nil {
-            maxJSONLength = i
-        }
+        panic("encoder error!")
     }
 }

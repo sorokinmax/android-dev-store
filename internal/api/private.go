@@ -218,15 +218,11 @@ func apkProcessor(apkFileName string, aabFileName string) (*models.Apk, error) {
 	apk.AppLabel = manifest.Application.Label
 	apk.AppIcon = manifest.Application.Icon
 	apk.VersionCode = manifest.VersionCode
+	apk.VersionName = manifest.VersionName
 	apk.APKFileName = apkFileName
 	apk.AABFileName = aabFileName
 	apk.APKSHA256 = getSHA256(apkFilePath)
 	apk.UploadTime = time.Now().Format("2006.01.02 15:04:05")
-	if globals.VersionPostfix != "" {
-		apk.VersionName = fmt.Sprintf("%s-%s", manifest.VersionName, globals.VersionPostfix)
-	} else {
-		apk.VersionName = manifest.VersionName
-	}
 
 	err = os.MkdirAll(fmt.Sprintf("./data/apps/%s", apk.APKSHA256), 0777)
 	if err != nil {

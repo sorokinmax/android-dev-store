@@ -349,9 +349,9 @@ func (d *numberStringDecoder) FromDom(vp unsafe.Pointer, node Node, ctx *context
 		return error_mismatch(node, ctx, jsonNumberType)
 	}
 
-	end, ok := SkipNumberFast(s, 0)
+	end, err := SkipNumberFast(s, 0)
 	// has error or trailing chars
-	if !ok || end != len(s) {
+	if err != nil || end != len(s) {
 		return error_mismatch(node, ctx, jsonNumberType)
 	}
 

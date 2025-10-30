@@ -13,7 +13,7 @@ var (
 )
 
 const (
-    _stack__value = 144
+    _stack__value = 112
 )
 
 var (

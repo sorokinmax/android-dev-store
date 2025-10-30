@@ -32,7 +32,7 @@ import (
 // WARN: 
 //   - the function MUST has fixed SP offset equaling to this, otherwise it go.gentraceback will fail
 //   - the function MUST has only one stack map for all arguments and local variants
-func (self Loader) LoadOne(text []byte, funcName string, frameSize int, argSize int, argPtrs []bool, localPtrs []bool, pcdata Pcdata) Function {
+func (self Loader) LoadOne(text []byte, funcName string, frameSize int, argSize int, argPtrs []bool, localPtrs []bool) Function {
     size := uint32(len(text))
 
     fn := Func{
@@ -41,8 +41,10 @@ func (self Loader) LoadOne(text []byte, funcName string, frameSize int, argSize 
         ArgsSize: int32(argSize),
     }
 
-
-    fn.Pcsp = &pcdata
+    // NOTICE: suppose the function has fixed SP offset equaling to frameSize, thus make only one pcsp pair
+    fn.Pcsp = &Pcdata{
+        {PC: size, Val: int32(frameSize)},
+    }
 
     if self.NoPreempt {
         fn.PcUnsafePoint = &Pcdata{

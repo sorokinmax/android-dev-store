@@ -32,7 +32,7 @@ const _PaddingSize =  32
 
 type FieldLookup interface {
 	Set(fields []resolver.FieldMeta)
-	Get(name string, caseSensitive bool) int
+	Get(name string) int
 }
 
 func isAscii(s string) bool {
@@ -84,7 +84,7 @@ func NewSmallFieldMap (hint int) *SmallFieldMap {
 
 func (self *SmallFieldMap) Set(fields []resolver.FieldMeta) {
 	if len(fields) > 8 {
-		panic("small field map should use in small struct")
+		panic("small field map shoud use in small struct")
 	}
 
 	for i, f := range fields {
@@ -93,15 +93,13 @@ func (self *SmallFieldMap) Set(fields []resolver.FieldMeta) {
 	}
 }
 
-func (self *SmallFieldMap) Get(name string, caseSensitive bool) int {
+func (self *SmallFieldMap) Get(name string) int {
 	for i, k := range self.keys {
 		if len(k) == len(name) && k == name {
 			return i
 		}
 	}
-	if caseSensitive {
-		return -1
-	}
+
 	name = strings.ToLower(name)
 	for i, k := range self.lowerKeys {
 		if len(k) == len(name) && k == name {
@@ -155,20 +153,16 @@ const _HdrSlot = 33
 const _HdrSize = _HdrSlot * 5
 
 // use native SIMD to accelerate it
-func (self *NormalFieldMap) Get(name string, caseSensitive bool) int {
+func (self *NormalFieldMap) Get(name string) int {
 	// small keys use native C
 	if len(name) <= 32 {
-		_ = native.LookupSmallKey
-		lowOffset := self.lowOffset
-		if caseSensitive {
-			lowOffset = -1
-		}
-		return native.LookupSmallKey(&name, &self.keys, lowOffset);
+		 _ = native.LookupSmallKey
+		return native.LookupSmallKey(&name, &self.keys, self.lowOffset);
 	}
-	return self.getLongKey(name, caseSensitive)
+	return self.getLongKey(name)
 }
 
-func (self *NormalFieldMap) getLongKey(name string, caseSensitive bool) int {
+func (self *NormalFieldMap) getLongKey(name string) int {
 	for _, k := range self.longKeys {
 		if len(k.key) != len(name) {
 			continue;
@@ -176,10 +170,6 @@ func (self *NormalFieldMap) getLongKey(name string, caseSensitive bool) int {
 		if k.key == name {
 			return int(k.index)
 		}
-	}
-
-	if caseSensitive {
-		return -1
 	}
 
 	lower := strings.ToLower(name)
@@ -264,7 +254,7 @@ type keysInfo struct {
 
 func (self *NormalFieldMap) Set(fields []resolver.FieldMeta) {
 	if len(fields) <=8 || len(fields) > 128 {
-		panic("normal field map should use in small struct")
+		panic("normal field map shoud use in small struct")
 	}
 
 	// allocate the flat map in []byte
@@ -288,7 +278,7 @@ func (self *NormalFieldMap) Set(fields []resolver.FieldMeta) {
 
 	}
 
-	// add a padding size at last to make it friendly for SIMD.
+	// add a padding size at last to make it firendly for SIMD.
 	self.keys = make([]byte, _HdrSize + 2 * kvLen, _HdrSize + 2 * kvLen + _PaddingSize)
 	self.lowOffset = _HdrSize + kvLen
 
@@ -324,7 +314,7 @@ func (self *NormalFieldMap) Set(fields []resolver.FieldMeta) {
 
 }
 
-// use hashmap
+// use hashnap
 type FallbackFieldMap struct {
 	oders  []string
 	inner  map[string]int
@@ -339,13 +329,11 @@ type FallbackFieldMap struct {
 	 }
  }
  
- func (self *FallbackFieldMap) Get(name string, caseSensitive bool) int {
+ func (self *FallbackFieldMap) Get(name string) int {
 	 if i, ok := self.inner[name]; ok {
 		 return i
-	 } else if !caseSensitive {
-		 return self.getCaseInsensitive(name)
 	 } else {
-		return -1
+		 return self.getCaseInsensitive(name)
 	 }
  }
  

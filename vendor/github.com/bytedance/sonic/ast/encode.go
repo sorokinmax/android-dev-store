@@ -20,9 +20,8 @@ import (
 	"sync"
 	"unicode/utf8"
 
-	"github.com/bytedance/gopkg/lang/dirtmake"
 	"github.com/bytedance/sonic/internal/rt"
-	"github.com/bytedance/sonic/option"
+    "github.com/bytedance/sonic/option"
 )
 
 func quoteString(e *[]byte, s string) {
@@ -96,11 +95,6 @@ func (self *Node) MarshalJSON() ([]byte, error) {
 		return bytesNull, nil
 	}
 
-    // fast path for raw node
-    if self.isRaw() {
-        return rt.Str2Mem(self.toString()), nil
-    }
-
     buf := newBuffer()
     err := self.encode(buf)
     if err != nil {
@@ -111,7 +105,7 @@ func (self *Node) MarshalJSON() ([]byte, error) {
     if !rt.CanSizeResue(cap(*buf)) {
         ret = *buf
     } else {
-        ret = dirtmake.Bytes(len(*buf), len(*buf))
+        ret = make([]byte, len(*buf))
         copy(ret, *buf)
         freeBuffer(buf)
     }

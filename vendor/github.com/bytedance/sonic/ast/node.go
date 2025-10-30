@@ -64,14 +64,14 @@ type Node struct {
 // UnmarshalJSON is just an adapter to json.Unmarshaler.
 // If you want better performance, use Searcher.GetByPath() directly
 func (self *Node) UnmarshalJSON(data []byte) (err error) {
-    *self = newRawNode(rt.Mem2Str(data), switchRawType(data[0]), false)
-    return nil
+    *self = NewRaw(string(data))
+    return self.Check()
 }
 
 /** Node Type Accessor **/
 
 // Type returns json type represented by the node
-// It will be one of bellows:
+// It will be one of belows:
 //    V_NONE   = 0 (empty node, key not exists)
 //    V_ERROR  = 1 (error node)
 //    V_NULL   = 2 (json value `null`, key exists)
@@ -89,7 +89,7 @@ func (self Node) Type() int {
 }
 
 // Type concurrently-safe returns json type represented by the node
-// It will be one of bellows:
+// It will be one of belows:
 //    V_NONE   = 0 (empty node, key not exists)
 //    V_ERROR  = 1 (error node)
 //    V_NULL   = 2 (json value `null`, key exists)
@@ -140,7 +140,7 @@ func (self *Node)  Check() error {
 
 // isRaw returns true if node's underlying value is raw json
 //
-// Deprecated: not concurrent safe
+// Deprecated: not concurent safe
 func (self Node) IsRaw() bool {
     return self.t & _V_RAW != 0
 }
@@ -440,7 +440,7 @@ func (self *Node) String() (string, error) {
     }
 }
 
-// StrictString returns string value (unescaped), including V_STRING, V_ANY of string.
+// StrictString returns string value (unescaped), includeing V_STRING, V_ANY of string.
 // In other cases, it will return empty string.
 func (self *Node) StrictString() (string, error) {
     if err := self.checkRaw(); err != nil {
@@ -509,24 +509,7 @@ func (self *Node) Float64() (float64, error) {
     }
 }
 
-func (self *Node) StrictBool() (bool, error) {
-    if err := self.checkRaw(); err!= nil {
-        return false, err
-    }
-    switch self.t {
-        case types.V_TRUE     : return true, nil
-        case types.V_FALSE    : return false, nil
-        case _V_ANY           :
-            any := self.packAny()
-            switch v := any.(type) {
-                case bool   : return v, nil
-                default      : return false, ErrUnsupportType
-            }
-        default              : return false, ErrUnsupportType
-    }
-}
-
-// Float64 exports underlying float64 value, including V_NUMBER, V_ANY
+// Float64 exports underlying float64 value, includeing V_NUMBER, V_ANY 
 func (self *Node) StrictFloat64() (float64, error) {
     if err := self.checkRaw(); err != nil {
         return 0.0, err
@@ -544,7 +527,7 @@ func (self *Node) StrictFloat64() (float64, error) {
     }
 }
 
-/** Sequential Value Methods **/
+/** Sequencial Value Methods **/
 
 // Len returns children count of a array|object|string node
 // WARN: For partially loaded node, it also works but only counts the parsed children
@@ -628,7 +611,7 @@ func (self *Node) Unset(key string) (bool, error) {
     if err := self.should(types.V_OBJECT); err != nil {
         return false, err
     }
-    // NOTICE: must get accurate length before deduct
+    // NOTICE: must get acurate length before deduct
     if err := self.skipAllKey(); err != nil {
         return false, err
     }
@@ -674,7 +657,7 @@ func (self *Node) SetAnyByIndex(index int, val interface{}) (bool, error) {
     return self.SetByIndex(index, NewAny(val))
 }
 
-// UnsetByIndex REMOVE (softly) the node of given index.
+// UnsetByIndex REOMVE (softly) the node of given index.
 //
 // WARN: this will change address of elements, which is a dangerous action.
 // Use Unset() for object or Pop() for array instead.
@@ -793,7 +776,7 @@ func (self *Node) Pop() error {
 }
 
 // Move moves the child at src index to dst index,
-// meanwhile slides siblings from src+1 to dst.
+// meanwhile slides sliblings from src+1 to dst.
 // 
 // WARN: this will change address of elements, which is a dangerous action.
 func (self *Node) Move(dst, src int) error {
@@ -833,7 +816,7 @@ func (self *Node) Move(dst, src int) error {
     return nil
 }
 
-// AddAny wraps val with V_ANY node, and Add() the node.
+// SetAny wraps val with V_ANY node, and Add() the node.
 func (self *Node) AddAny(val interface{}) error {
     return self.Add(NewAny(val))
 }
@@ -955,7 +938,7 @@ func (self *Node) Map() (map[string]interface{}, error) {
     return self.toGenericObject()
 }
 
-// MapUseNumber loads all keys of an object node, with numeric nodes cast to json.Number
+// MapUseNumber loads all keys of an object node, with numeric nodes casted to json.Number
 func (self *Node) MapUseNumber() (map[string]interface{}, error) {
     if self.isAny() {
         any := self.packAny()
@@ -974,7 +957,7 @@ func (self *Node) MapUseNumber() (map[string]interface{}, error) {
     return self.toGenericObjectUseNumber()
 }
 
-// MapUseNode scans both parsed and non-parsed children nodes,
+// MapUseNode scans both parsed and non-parsed chidren nodes, 
 // and map them by their keys
 func (self *Node) MapUseNode() (map[string]Node, error) {
     if self.isAny() {
@@ -1100,7 +1083,7 @@ func (self *Node) Array() ([]interface{}, error) {
     return self.toGenericArray()
 }
 
-// ArrayUseNumber loads all indexes of an array node, with numeric nodes cast to json.Number
+// ArrayUseNumber loads all indexes of an array node, with numeric nodes casted to json.Number
 func (self *Node) ArrayUseNumber() ([]interface{}, error) {
     if self.isAny() {
         any := self.packAny()
@@ -1119,7 +1102,7 @@ func (self *Node) ArrayUseNumber() ([]interface{}, error) {
     return self.toGenericArrayUseNumber()
 }
 
-// ArrayUseNode copies both parsed and non-parsed children nodes,
+// ArrayUseNode copys both parsed and non-parsed chidren nodes, 
 // and indexes them by original order
 func (self *Node) ArrayUseNode() ([]Node, error) {
     if self.isAny() {
@@ -1164,9 +1147,9 @@ func (self *Node) unsafeArray() (*linkedNodes, error) {
     return (*linkedNodes)(self.p), nil
 }
 
-// Interface loads all children under all paths from this node,
+// Interface loads all children under all pathes from this node,
 // and converts itself as generic type.
-// WARN: all numeric nodes are cast to float64
+// WARN: all numberic nodes are casted to float64
 func (self *Node) Interface() (interface{}, error) {
     if err := self.checkRaw(); err != nil {
         return nil, err
@@ -1210,7 +1193,7 @@ func (self *Node) packAny() interface{} {
 }
 
 // InterfaceUseNumber works same with Interface()
-// except numeric nodes are cast to json.Number
+// except numberic nodes  are casted to json.Number
 func (self *Node) InterfaceUseNumber() (interface{}, error) {
     if err := self.checkRaw(); err != nil {
         return nil, err
@@ -1695,7 +1678,7 @@ func NewBytes(src []byte) Node {
     if len(src) == 0 {
         panic("empty src bytes")
     }
-    out := rt.EncodeBase64ToString(src)
+    out := rt.EncodeBase64(src)
     return NewString(out)
 }
 

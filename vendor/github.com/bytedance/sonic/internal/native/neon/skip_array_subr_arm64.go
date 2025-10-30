@@ -13,7 +13,7 @@ var (
 )
 
 const (
-    _stack__skip_array = 240
+    _stack__skip_array = 224
 )
 
 var (

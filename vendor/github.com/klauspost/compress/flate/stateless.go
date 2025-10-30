@@ -4,8 +4,6 @@ import (
 	"io"
 	"math"
 	"sync"
-
-	"github.com/klauspost/compress/internal/le"
 )
 
 const (
@@ -56,7 +54,7 @@ func NewStatelessWriter(dst io.Writer) io.WriteCloser {
 
 // bitWriterPool contains bit writers that can be reused.
 var bitWriterPool = sync.Pool{
-	New: func() any {
+	New: func() interface{} {
 		return newHuffmanBitWriter(nil)
 	},
 }
@@ -154,11 +152,18 @@ func hashSL(u uint32) uint32 {
 }
 
 func load3216(b []byte, i int16) uint32 {
-	return le.Load32(b, i)
+	// Help the compiler eliminate bounds checks on the read so it can be done in a single read.
+	b = b[i:]
+	b = b[:4]
+	return uint32(b[0]) | uint32(b[1])<<8 | uint32(b[2])<<16 | uint32(b[3])<<24
 }
 
 func load6416(b []byte, i int16) uint64 {
-	return le.Load64(b, i)
+	// Help the compiler eliminate bounds checks on the read so it can be done in a single read.
+	b = b[i:]
+	b = b[:8]
+	return uint64(b[0]) | uint64(b[1])<<8 | uint64(b[2])<<16 | uint64(b[3])<<24 |
+		uint64(b[4])<<32 | uint64(b[5])<<40 | uint64(b[6])<<48 | uint64(b[7])<<56
 }
 
 func statelessEnc(dst *tokens, src []byte, startAt int16) {
@@ -184,7 +189,7 @@ func statelessEnc(dst *tokens, src []byte, startAt int16) {
 	// Index until startAt
 	if startAt > 0 {
 		cv := load3232(src, 0)
-		for i := range startAt {
+		for i := int16(0); i < startAt; i++ {
 			table[hashSL(cv)] = tableEntry{offset: i}
 			cv = (cv >> 8) | (uint32(src[i+4]) << 24)
 		}

@@ -21,12 +21,14 @@ import (
 	_ "unsafe"
 
 	"github.com/bytedance/sonic/internal/encoder/alg"
-	"github.com/bytedance/sonic/internal/encoder/prim"
 	"github.com/bytedance/sonic/internal/encoder/vars"
 	"github.com/bytedance/sonic/internal/rt"
 	"github.com/bytedance/sonic/loader"
 	_ "github.com/cloudwego/base64x"
 )
+
+//go:linkname _subr__b64encode github.com/cloudwego/base64x._subr__b64encode
+var _subr__b64encode uintptr
 
 var compiler func(*rt.GoType, ... interface{}) (interface{}, error)
 
@@ -40,7 +42,7 @@ func ptoenc(p loader.Function) vars.Encoder {
 
 func EncodeTypedPointer(buf *[]byte, vt *rt.GoType, vp *unsafe.Pointer, sb *vars.Stack, fv uint64) error {
 	if vt == nil {
-		return prim.EncodeNil(buf)
+		return alg.EncodeNil(buf)
 	} else if fn, err := vars.FindOrCompile(vt, (fv&(1<<alg.BitPointerValue)) != 0, compiler); err != nil {
 		return err
 	} else if vt.Indirect() {

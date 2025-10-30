@@ -23,8 +23,6 @@ import (
 
 	"github.com/bytedance/sonic/internal/native/types"
 	"github.com/bytedance/sonic/internal/rt"
-	"github.com/bytedance/sonic/internal/utils"
-	"github.com/bytedance/sonic/unquote"
 )
 
 const (
@@ -65,7 +63,7 @@ func (self *Parser) delim() types.ParsingError {
         return types.ERR_EOF
     }
 
-    /* check for the delimiter */
+    /* check for the delimtier */
     if self.s[p] != ':' {
         return types.ERR_INVALID_CHAR
     }
@@ -84,7 +82,7 @@ func (self *Parser) object() types.ParsingError {
         return types.ERR_EOF
     }
 
-    /* check for the delimiter */
+    /* check for the delimtier */
     if self.s[p] != '{' {
         return types.ERR_INVALID_CHAR
     }
@@ -103,7 +101,7 @@ func (self *Parser) array() types.ParsingError {
         return types.ERR_EOF
     }
 
-    /* check for the delimiter */
+    /* check for the delimtier */
     if self.s[p] != '[' {
         return types.ERR_INVALID_CHAR
     }
@@ -115,13 +113,13 @@ func (self *Parser) array() types.ParsingError {
 
 func (self *Parser) lspace(sp int) int {
     ns := len(self.s)
-    for ; sp<ns && utils.IsSpace(self.s[sp]); sp+=1 {}
+    for ; sp<ns && isSpace(self.s[sp]); sp+=1 {}
 
     return sp
 }
 
 func (self *Parser) backward() {
-    for ; self.p >= 0 && utils.IsSpace(self.s[self.p]); self.p-=1 {}
+    for ; self.p >= 0 && isSpace(self.s[self.p]); self.p-=1 {}
 }
 
 func (self *Parser) decodeArray(ret *linkedNodes) (Node, types.ParsingError) {
@@ -219,7 +217,7 @@ func (self *Parser) decodeObject(ret *linkedPairs) (Node, types.ParsingError) {
 
         /* check for escape sequence */
         if njs.Ep != -1 {
-            if key, err = unquote.String(key); err != 0 {
+            if key, err = unquote(key); err != 0 {
                 return Node{}, err
             }
         }
@@ -284,7 +282,7 @@ func (self *Parser) decodeString(iv int64, ep int) (Node, types.ParsingError) {
     }
 
     /* unquote the string */
-    out, err := unquote.String(s)
+    out, err := unquote(s)
 
     /* check for errors */
     if err != 0 {
@@ -394,7 +392,7 @@ func (self *Parser) searchKey(match string) types.ParsingError {
 
         /* check for escape sequence */
         if njs.Ep != -1 {
-            if key, err = unquote.String(key); err != 0 {
+            if key, err = unquote(key); err != 0 {
                 return err
             }
         }
@@ -575,7 +573,7 @@ func (self *Node) skipNextPair() (*Pair) {
 
     /* check for escape sequence */
     if njs.Ep != -1 {
-        if key, err = unquote.String(key); err != 0 {
+        if key, err = unquote(key); err != 0 {
             return newErrorPair(parser.syntaxError(err))
         }
     }
@@ -640,7 +638,7 @@ func Loads(src string) (int, interface{}, error) {
     }
 }
 
-// LoadsUseNumber parse all json into interface{}, with numeric nodes cast to json.Number
+// LoadsUseNumber parse all json into interface{}, with numeric nodes casted to json.Number
 func LoadsUseNumber(src string) (int, interface{}, error) {
     ps := &Parser{s: src}
     np, err := ps.Parse()
@@ -694,7 +692,7 @@ func (self *Parser) ExportError(err types.ParsingError) error {
 }
 
 func backward(src string, i int) int {
-    for ; i>=0 && utils.IsSpace(src[i]); i-- {}
+    for ; i>=0 && isSpace(src[i]); i-- {}
     return i
 }
 

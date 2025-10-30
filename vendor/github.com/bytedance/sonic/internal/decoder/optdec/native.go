@@ -61,20 +61,19 @@ type node struct {
 	val uint64
 }
 
-// should consistent with native/parser.c
+// should consitent with native/parser.c
 type _nospaceBlock struct {
 	_ [8]byte
 	_ [8]byte
 }
 
-// should consistent with native/parser.c
+// should consitent with native/parser.c
 type nodeBuf struct {
 	ncur    uintptr
 	parent  int64
 	depth   uint64
 	nstart  uintptr
 	nend    uintptr
-	iskey   bool
 	stat    jsonStat
 }
 
@@ -85,7 +84,7 @@ func (self *nodeBuf) init(nodes []node) {
 	self.parent = -1
 }
 
-// should consistent with native/parser.c
+// should consitent with native/parser.c
 type Parser struct {
 	Json    string
 	padded	[]byte
@@ -197,14 +196,14 @@ func (p *Parser) parse() ErrorCode {
 
 	// check OoB here
 	offset := p.nbuf.ncur - p.nbuf.nstart
-	curLen :=  int(offset / unsafe.Sizeof(node{}))
-	if curLen != len(p.nodes) {
+	curLen :=  offset / unsafe.Sizeof(node{})
+	if curLen != uintptr(len(p.nodes)) {
 		panic(fmt.Sprintf("current len: %d, real len: %d cap: %d", curLen, len(p.nodes), cap(p.nodes)))
 	}
 
 	// node buf is not enough, continue parse
 	// the maxCap is always meet all valid JSON
-	maxCap := curLen + calMaxNodeCap(len(p.Json) - int(p.cur - p.start))
+	maxCap := calMaxNodeCap(len(p.Json))
 	slice := rt.GoSlice{
 		Ptr: rt.Mallocgc(uintptr(maxCap) * nodeType.Size, nodeType, false),
 		Len: maxCap,

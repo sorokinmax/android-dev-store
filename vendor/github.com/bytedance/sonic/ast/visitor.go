@@ -21,7 +21,6 @@ import (
     `errors`
 
     `github.com/bytedance/sonic/internal/native/types`
-    `github.com/bytedance/sonic/unquote`
 )
 
 // Visitor handles the callbacks during preorder traversal of a JSON AST.
@@ -179,7 +178,7 @@ func (self *traverser) decodeArray() error {
     /* allocate array space and parse every element */
     if err := self.visitor.OnArrayBegin(_DEFAULT_NODE_CAP); err != nil {
         if err == VisitOPSkip {
-            // NOTICE: for user needs to skip entry object
+            // NOTICE: for user needs to skip entiry object
             self.parser.p -= 1
             if _, e := self.parser.skipFast(); e != 0 {
                 return e
@@ -234,7 +233,7 @@ func (self *traverser) decodeObject() error {
     /* allocate object space and decode each pair */
     if err := self.visitor.OnObjectBegin(_DEFAULT_NODE_CAP); err != nil {
         if err == VisitOPSkip {
-            // NOTICE: for user needs to skip entry object
+            // NOTICE: for user needs to skip entiry object
             self.parser.p -= 1
             if _, e := self.parser.skipFast(); e != 0 {
                 return e
@@ -271,7 +270,7 @@ func (self *traverser) decodeObject() error {
 
         /* check for escape sequence */
         if njs.Ep != -1 {
-            if key, err = unquote.String(key); err != 0 {
+            if key, err = unquote(key); err != 0 {
                 return err
             }
         }
@@ -321,7 +320,7 @@ func (self *traverser) decodeString(iv int64, ep int) error {
     }
 
     /* unquote the string */
-    out, err := unquote.String(s)
+    out, err := unquote(s)
     if err != 0 {
         return err
     }
@@ -329,5 +328,5 @@ func (self *traverser) decodeString(iv int64, ep int) error {
 }
 
 // If visitor return this error on `OnObjectBegin()` or `OnArrayBegin()`,
-// the traverser will skip entry object or array
+// the transverer will skip entiry object or array
 var VisitOPSkip = errors.New("")

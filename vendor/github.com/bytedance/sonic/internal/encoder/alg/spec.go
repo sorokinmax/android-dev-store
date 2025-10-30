@@ -1,5 +1,5 @@
-//go:build (amd64 && go1.16 && !go1.26) || (arm64 && go1.20 && !go1.26)
-// +build amd64,go1.16,!go1.26 arm64,go1.20,!go1.26
+//go:build (amd64 && go1.16 && !go1.24) || (arm64 && go1.20 && !go1.24)
+// +build amd64,go1.16,!go1.24 arm64,go1.20,!go1.24
 
 /**
  * Copyright 2024 ByteDance Inc.
@@ -21,7 +21,6 @@ package alg
 
 import (
 	"runtime"
-	"strconv"
 	"unsafe"
 
 	"github.com/bytedance/sonic/internal/native"
@@ -61,6 +60,7 @@ func Valid(data []byte) (ok bool, start int) {
 
 var typeByte = rt.UnpackEface(byte(0)).Type
 
+//go:nocheckptr
 func Quote(buf []byte, val string, double bool) []byte {
 	if len(val) == 0 {
 		if double {
@@ -76,8 +76,6 @@ func Quote(buf []byte, val string, double bool) []byte {
 	}
 	sp := rt.IndexChar(val, 0)
 	nb := len(val)
-
-	buf = rt.GuardSlice2(buf, nb+1)
 	b := (*rt.GoSlice)(unsafe.Pointer(&buf))
 
 	// input buffer
@@ -105,9 +103,7 @@ func Quote(buf []byte, val string, double bool) []byte {
 		ret = ^ret
 		// update input buffer
 		nb -= ret
-		if nb > 0 {
-			sp = unsafe.Pointer(uintptr(sp) + uintptr(ret))
-		}
+		sp = unsafe.Pointer(uintptr(sp) + uintptr(ret))
 	}
 
 	runtime.KeepAlive(buf)
@@ -181,9 +177,22 @@ func F32toa(buf []byte, v float32) ([]byte) {
 }
 
 func I64toa(buf []byte, v int64) ([]byte) {
-	return strconv.AppendInt(buf, v, 10)
+	buf = rt.GuardSlice2(buf, 32)
+	ret := native.I64toa((*byte)(rt.IndexByte(buf, len(buf))), v)
+	if ret > 0 {
+		return buf[:len(buf)+ret]
+	} else {
+		return buf
+	}
 }
 
 func U64toa(buf []byte, v uint64) ([]byte) {
-	return strconv.AppendUint(buf, v, 10)
+	buf = rt.GuardSlice2(buf, 32)
+	ret := native.U64toa((*byte)(rt.IndexByte(buf, len(buf))), v)
+	if ret > 0 {
+		return buf[:len(buf)+ret]
+	} else {
+		return buf
+	}
 }
+

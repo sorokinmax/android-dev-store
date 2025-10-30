@@ -80,13 +80,9 @@ func (d *arrayDecoder) FromDom(vp unsafe.Pointer, node Node, ctx *context) error
 	}
 
 	/* zero rest of array */
-	addr := uintptr(vp) + uintptr(i)*d.elemType.Size
+	ptr := unsafe.Pointer(uintptr(vp) + uintptr(i)*d.elemType.Size)
 	n := uintptr(d.len-i) * d.elemType.Size
-
-	/* the boundary pointer may points to another unknown object, so we need to avoid using it */
-	if n != 0 {
-		rt.ClearMemory(d.elemType, unsafe.Pointer(addr), n)
-	}
+	rt.ClearMemory(d.elemType, ptr, n)
 	return gerr
 }
 
@@ -99,18 +95,7 @@ func (d *sliceEfaceDecoder) FromDom(vp unsafe.Pointer, node Node, ctx *context) 
 		return nil
 	}
 
-	/* if slice is empty, just call `AsSliceEface` */
-	if ((*rt.GoSlice)(vp)).Len == 0 {
-		return node.AsSliceEface(ctx, vp)
-	}
-	
-	decoder := sliceDecoder{
-		elemType: rt.AnyType,
-		elemDec:  &efaceDecoder{},
-		typ:      rt.SliceEfaceType.Pack(),
-	}
-
-	return decoder.FromDom(vp, node, ctx)
+	return node.AsSliceEface(ctx, vp)
 }
 
 type sliceI32Decoder struct {
@@ -183,8 +168,12 @@ func (d *sliceBytesDecoder) FromDom(vp unsafe.Pointer, node Node, ctx *context) 
 	}
 
 	s, err := node.AsSliceBytes(ctx)
+	if err != nil {
+		return err
+	}
+
 	*(*[]byte)(vp) = s
-	return err
+	return nil
 }
 
 type sliceBytesUnmarshalerDecoder struct {

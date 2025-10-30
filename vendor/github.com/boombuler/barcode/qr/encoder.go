@@ -54,8 +54,8 @@ func (e Encoding) String() string {
 	return ""
 }
 
-// Encode returns a QR barcode with the given content and color scheme, error correction level and uses the given encoding
-func EncodeWithColor(content string, level ErrorCorrectionLevel, mode Encoding, color barcode.ColorScheme) (barcode.Barcode, error) {
+// Encode returns a QR barcode with the given content, error correction level and uses the given encoding
+func Encode(content string, level ErrorCorrectionLevel, mode Encoding) (barcode.Barcode, error) {
 	bits, vi, err := mode.getEncoder()(content, level)
 	if err != nil {
 		return nil, err
@@ -63,23 +63,19 @@ func EncodeWithColor(content string, level ErrorCorrectionLevel, mode Encoding, 
 
 	blocks := splitToBlocks(bits.IterateBytes(), vi)
 	data := blocks.interleave(vi)
-	result := render(data, vi, color)
+	result := render(data, vi)
 	result.content = content
 	return result, nil
 }
 
-func Encode(content string, level ErrorCorrectionLevel, mode Encoding) (barcode.Barcode, error) {
-	return EncodeWithColor(content, level, mode, barcode.ColorScheme16)
-}
-
-func render(data []byte, vi *versionInfo, color barcode.ColorScheme) *qrcode {
+func render(data []byte, vi *versionInfo) *qrcode {
 	dim := vi.modulWidth()
 	results := make([]*qrcode, 8)
 	for i := 0; i < 8; i++ {
-		results[i] = newBarCodeWithColor(dim, color)
+		results[i] = newBarcode(dim)
 	}
 
-	occupied := newBarCodeWithColor(dim, color)
+	occupied := newBarcode(dim)
 
 	setAll := func(x int, y int, val bool) {
 		occupied.Set(x, y, true)

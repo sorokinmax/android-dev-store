@@ -1,7 +1,7 @@
 ##
 ## Build stage
 ##
-FROM golang:1.23.3-alpine3.20 AS build
+FROM golang:1.25.7-alpine3.23 AS build
 RUN apk update && apk upgrade&& \
      apk add --no-cache git gcc g++ musl-dev
 COPY . /src
@@ -12,7 +12,7 @@ RUN GOOS=linux CGO_ENABLED=1 CGO_CFLAGS="-D_LARGEFILE64_SOURCE" go build -o /ast
 ##
 ## Final image stage
 ##
-FROM alpine:3.20.3
+FROM alpine:3.23.3
 ENV TZ=Etc/UTC
 RUN apk add tzdata && cp /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && apk del tzdata
 WORKDIR /astore

@@ -61,11 +61,15 @@ func main() {
 	router.Use(static.Serve("/apps", static.LocalFile("./data/apps", false)))
 	//router.Use(static.Serve("/icons", static.LocalFile("./icons", false)))
 	router.GET("/", api.IndexHandler)
+	router.PUT("/apk", api.PutApkHandler)
 	//router.GET("/admin", middleware.MidAuth(auth), middleware.AddUserToCtx(), api.IndexHandler)
 	router.GET("/app/:id", api.VersionHandler)
 	router.GET("/qr/:id", api.QRHandler)
 	router.POST("/remove", api.RemoveHandler)
 	router.POST("/apk", api.PostApkHandler)
+
+	//public api
+	router.GET("/apks", api.GetApksHandler)
 
 	slog.Info(fmt.Sprintf("Web is available at localhost:%d", globals.Config.HttpPort))
 	router.Run(fmt.Sprintf(":%d", globals.Config.HttpPort))

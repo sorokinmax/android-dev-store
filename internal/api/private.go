@@ -18,6 +18,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/casbin/casbin"
@@ -30,6 +31,18 @@ import (
 	"github.com/avast/apkparser"
 )
 
+var (
+	enforcer     *casbin.Enforcer
+	enforcerOnce sync.Once
+)
+
+func getEnforcer() *casbin.Enforcer {
+	enforcerOnce.Do(func() {
+		enforcer = casbin.NewEnforcer("./data/model.conf", "./data/policy.csv")
+	})
+	return enforcer
+}
+
 func IndexHandler(ctx *gin.Context) {
 	var apks []models.Apk
 	apks, _ = db.SQLiteGetApks()
@@ -38,7 +51,8 @@ func IndexHandler(ctx *gin.Context) {
 		apks[id].AabUrl = getAabUrl(apk)
 	}
 
-	e := casbin.NewEnforcer("./data/model.conf", "./data/policy.csv")
+	// Casbin enforcer
+	e := getEnforcer()
 	//log.Println(ctx.Value("user"))
 
 	// Admin rights
@@ -195,6 +209,90 @@ func PostApkHandler(ctx *gin.Context) {
 		telegram.TgSendMessage(globals.Config.BotToken, msg, globals.Config.ChatID)
 	}
 	ctx.JSON(http.StatusOK, gin.H{"responce": "File processed"})
+}
+
+// PutApkHandler updates the metadata of an existing APK and renames the physical files
+// on disk if APKFileName or AABFileName are changed. It supports updating any field
+// present in the Apk model via form data in the request body.
+func PutApkHandler(ctx *gin.Context) {
+	// Require the APK's database ID to identify which record to update
+	id := ctx.PostForm("id")
+	if id == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"responce": "ID not provided"})
+		return
+	}
+
+	apk, _ := db.SQLiteGetApk(id)
+	oldAPKName := apk.APKFileName
+	oldAABName := apk.AABFileName
+
+	// Ensure form data is parsed so we can read all fields
+	_ = ctx.Request.ParseForm()
+
+	var newAPKName, newAABName string
+
+	// Apply all provided fields to the Apk struct
+	for key, vals := range ctx.Request.PostForm {
+		if len(vals) == 0 {
+			continue
+		}
+		val := vals[0]
+		switch key {
+		case "APKFileName":
+			if val != apk.APKFileName {
+				newAPKName = val
+				apk.APKFileName = val
+			}
+		case "AABFileName":
+			if val != apk.AABFileName {
+				newAABName = val
+				apk.AABFileName = val
+			}
+		case "UploadTime":
+			apk.UploadTime = val
+		case "APKSHA256":
+			apk.APKSHA256 = val
+		case "Package":
+			apk.Package = val
+		case "VersionCode":
+			apk.VersionCode = val
+		case "VersionName":
+			apk.VersionName = val
+		case "AppLabel":
+			apk.AppLabel = val
+		case "AppIcon":
+			apk.AppIcon = val
+		case "AppName":
+			apk.AppName = val
+			// ignore ApkUrl, AabUrl as they are not persisted
+		}
+	}
+
+	// Rename APK file if needed
+	if newAPKName != "" && newAPKName != oldAPKName {
+		oldPath := fmt.Sprintf("./data/apps/%s/%s", apk.APKSHA256, oldAPKName)
+		newPath := fmt.Sprintf("./data/apps/%s/%s", apk.APKSHA256, newAPKName)
+		if err := os.Rename(oldPath, newPath); err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"responce": fmt.Sprintf("Rename APK failed: %s", err.Error())})
+			return
+		}
+		apk.APKFileName = newAPKName
+	}
+
+	// Rename AAB file if needed
+	if newAABName != "" && newAABName != oldAABName {
+		oldPath := fmt.Sprintf("./data/apps/%s/%s", apk.APKSHA256, oldAABName)
+		newPath := fmt.Sprintf("./data/apps/%s/%s", apk.APKSHA256, newAABName)
+		if err := os.Rename(oldPath, newPath); err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"responce": fmt.Sprintf("Rename AAB failed: %s", err.Error())})
+			return
+		}
+		apk.AABFileName = newAABName
+	}
+
+	// Persist updates to the DB
+	db.SQLiteSaveApk(apk)
+	ctx.JSON(http.StatusOK, gin.H{"responce": "APK updated"})
 }
 
 //////////

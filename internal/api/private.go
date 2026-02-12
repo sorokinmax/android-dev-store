@@ -165,7 +165,7 @@ func PostApkHandler(ctx *gin.Context) {
 			aabFound = true
 			aabFile = file
 		}
-		if strings.HasSuffix(file.Filename, ".sbom") {
+		if strings.HasSuffix(file.Filename, "sbom.json") {
 			sbomFound = true
 			sbomFile = file
 		}

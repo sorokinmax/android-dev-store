@@ -49,7 +49,7 @@ func main() {
 	router.MaxMultipartMemory = 256 << 20 // 256 MiB
 	router.Use(gin.Recovery())
 	router.Use(sloggin.New(slog.Default()))
-	router.Use(middleware.StaticApkMiddleware())
+	router.Use(middleware.StaticFileMiddleware())
 
 	router.HTMLRender = ginview.Default()
 	//config := websspi.NewConfig()

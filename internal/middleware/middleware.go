@@ -1,16 +1,29 @@
 package middleware
 
 import (
+	"path/filepath"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
-func StaticApkMiddleware() gin.HandlerFunc {
+func StaticFileMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Apply the Cache-Control header to the static files
+		// Apply Content-Type based on file extension for static files under /apps/
+		// This prevents mislabeling non-APK files (e.g., sbom.json) as APK.
 		if strings.HasPrefix(c.Request.URL.Path, "/apps/") {
-			c.Header("Content-Type", "application/vnd.android.package-archive")
+			ext := strings.ToLower(filepath.Ext(c.Request.URL.Path))
+			switch ext {
+			case ".apk":
+				c.Header("Content-Type", "application/vnd.android.package-archive")
+			case ".aab":
+				// AAB is a ZIP-based bundle
+				c.Header("Content-Type", "application/zip")
+			case ".json":
+				c.Header("Content-Type", "application/json")
+			default:
+				// Let the default content type be determined by the server
+			}
 		}
 		// Continue to the next middleware or handler
 		c.Next()

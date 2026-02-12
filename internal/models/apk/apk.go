@@ -11,6 +11,7 @@ type Apk struct {
 
 	ApkUrl       string `gorm:"-"`
 	AabUrl       string `gorm:"-"`
+	SbomUrl      string `gorm:"-"`
 	APKFileName  string
 	AABFileName  string
 	SBOMFileName string

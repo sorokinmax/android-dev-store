@@ -19,6 +19,7 @@ func GetApksHandler(ctx *gin.Context) {
 	for i := range apks {
 		apks[i].ApkUrl = getApkUrl(apks[i])
 		apks[i].AabUrl = getAabUrl(apks[i])
+		apks[i].SbomUrl = getSbomUrl(apks[i])
 	}
 
 	ctx.JSON(http.StatusOK, apks)

@@ -338,9 +338,9 @@ func apkProcessor(apkFileName string, aabFileName string, sbomFileName string) (
 
 	if sbomFileName != "" {
 		sbomFilePath = globals.TMPDIR + sbomFileName
-		apk.SBOMFileName = aabFileName
+		apk.SBOMFileName = sbomFileName
 	} else {
-		apk.SBOMFileName = aabFileName
+		apk.SBOMFileName = ""
 	}
 
 	manifest, err := apkParse(apkFilePath)
@@ -456,6 +456,15 @@ func getAabUrl(apk models.Apk) (URL string) {
 		return ""
 	}
 	URL = fmt.Sprintf("%s/apps/%s/%s", globals.Config.Url, apk.APKSHA256, apk.AABFileName)
+	return URL
+}
+
+// getSbomUrl returns the URL for the SBOM file if present
+func getSbomUrl(apk models.Apk) (URL string) {
+	if apk.SBOMFileName == "" {
+		return ""
+	}
+	URL = fmt.Sprintf("%s/apps/%s/%s", globals.Config.Url, apk.APKSHA256, apk.SBOMFileName)
 	return URL
 }
 

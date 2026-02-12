@@ -152,7 +152,9 @@ func PostApkHandler(ctx *gin.Context) {
 	// Extract the apk and aab files
 	apkFound := false
 	aabFound := false
+	sbomFound := false
 	var apkFile, aabFile *multipart.FileHeader
+	var sbomFile *multipart.FileHeader
 	files := form.File["files"]
 	for _, file := range files {
 		if strings.HasSuffix(file.Filename, ".apk") {
@@ -163,9 +165,18 @@ func PostApkHandler(ctx *gin.Context) {
 			aabFound = true
 			aabFile = file
 		}
+		if strings.HasSuffix(file.Filename, ".sbom") {
+			sbomFound = true
+			sbomFile = file
+		}
 	}
 	defer os.Remove(globals.TMPDIR + filepath.Base(apkFile.Filename))
-	defer os.Remove(globals.TMPDIR + filepath.Base(aabFile.Filename))
+	if aabFound {
+		defer os.Remove(globals.TMPDIR + filepath.Base(aabFile.Filename))
+	}
+	if sbomFound {
+		defer os.Remove(globals.TMPDIR + filepath.Base(sbomFile.Filename))
+	}
 
 	// One of the files must be an APK
 	if !apkFound {
@@ -180,11 +191,23 @@ func PostApkHandler(ctx *gin.Context) {
 	}
 
 	// Saving the AAB
+	var aabFileName string
 	if aabFound {
 		if err := ctx.SaveUploadedFile(aabFile, globals.TMPDIR+filepath.Base(aabFile.Filename)); err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"responce": fmt.Sprintf("Upload file error: %s", err.Error())})
 			return
 		}
+		aabFileName = filepath.Base(aabFile.Filename)
+	}
+
+	// Saving SBOM
+	var sbomFileName string
+	if sbomFound {
+		if err := ctx.SaveUploadedFile(sbomFile, globals.TMPDIR+filepath.Base(sbomFile.Filename)); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"responce": fmt.Sprintf("Upload file error: %s", err.Error())})
+			return
+		}
+		sbomFileName = filepath.Base(sbomFile.Filename)
 	}
 
 	// Checking for re-placement
@@ -197,7 +220,7 @@ func PostApkHandler(ctx *gin.Context) {
 	}
 
 	// Processing
-	app, err := apkProcessor(filepath.Base(apkFile.Filename), filepath.Base(aabFile.Filename))
+	app, err := apkProcessor(filepath.Base(apkFile.Filename), aabFileName, sbomFileName)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"responce": fmt.Sprintf("APK processing error: %s", err.Error())})
 		return
@@ -299,11 +322,26 @@ func PutApkHandler(ctx *gin.Context) {
 // ADDITIONAL FUNCTIONS
 //////////
 
-func apkProcessor(apkFileName string, aabFileName string) (*models.Apk, error) {
+func apkProcessor(apkFileName string, aabFileName string, sbomFileName string) (*models.Apk, error) {
 	var apk models.Apk
+	var aabFilePath string
+	var sbomFilePath string
 
 	apkFilePath := globals.TMPDIR + apkFileName
-	aabFilePath := globals.TMPDIR + aabFileName
+
+	if aabFileName != "" {
+		aabFilePath = globals.TMPDIR + aabFileName
+		apk.AABFileName = aabFileName
+	} else {
+		apk.AABFileName = ""
+	}
+
+	if sbomFileName != "" {
+		sbomFilePath = globals.TMPDIR + sbomFileName
+		apk.SBOMFileName = aabFileName
+	} else {
+		apk.SBOMFileName = aabFileName
+	}
 
 	manifest, err := apkParse(apkFilePath)
 	if err != nil {
@@ -318,7 +356,6 @@ func apkProcessor(apkFileName string, aabFileName string) (*models.Apk, error) {
 	apk.VersionCode = manifest.VersionCode
 	apk.VersionName = manifest.VersionName
 	apk.APKFileName = apkFileName
-	apk.AABFileName = aabFileName
 	apk.APKSHA256 = getSHA256(apkFilePath)
 	apk.UploadTime = time.Now().Format("2006.01.02 15:04:05")
 
@@ -326,16 +363,30 @@ func apkProcessor(apkFileName string, aabFileName string) (*models.Apk, error) {
 	if err != nil {
 		panic(err)
 	}
+
 	// Moving APK
 	err = moveFile(apkFilePath, fmt.Sprintf("./data/apps/%s/%s", apk.APKSHA256, apkFileName))
 	if err != nil {
 		log.Println(err.Error())
+		return nil, err
 	}
 	// Moving AAB
-	err = moveFile(aabFilePath, fmt.Sprintf("./data/apps/%s/%s", apk.APKSHA256, aabFileName))
-	if err != nil {
-		log.Println(err.Error())
+	if aabFileName != "" {
+		err = moveFile(aabFilePath, fmt.Sprintf("./data/apps/%s/%s", apk.APKSHA256, aabFileName))
+		if err != nil {
+			log.Println(err.Error())
+			return nil, err
+		}
 	}
+	// Moving SBOM
+	if sbomFileName != "" {
+		err = moveFile(sbomFilePath, fmt.Sprintf("./data/apps/%s/%s", apk.APKSHA256, sbomFileName))
+		if err != nil {
+			log.Println(err.Error())
+			return nil, err
+		}
+	}
+
 	db.SQLiteAddApk(&apk)
 	return &apk, nil
 }
@@ -401,6 +452,9 @@ func getApkUrl(apk models.Apk) (URL string) {
 	return URL
 }
 func getAabUrl(apk models.Apk) (URL string) {
+	if apk.AABFileName == "" {
+		return ""
+	}
 	URL = fmt.Sprintf("%s/apps/%s/%s", globals.Config.Url, apk.APKSHA256, apk.AABFileName)
 	return URL
 }

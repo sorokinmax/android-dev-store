@@ -9,12 +9,13 @@ import (
 type Apk struct {
 	gorm.Model
 
-	ApkUrl      string `gorm:"-"`
-	AabUrl      string `gorm:"-"`
-	APKFileName string
-	AABFileName string
-	UploadTime  string
-	APKSHA256   string
+	ApkUrl       string `gorm:"-"`
+	AabUrl       string `gorm:"-"`
+	APKFileName  string
+	AABFileName  string
+	SBOMFileName string
+	UploadTime   string
+	APKSHA256    string
 
 	Package     string
 	VersionCode string
